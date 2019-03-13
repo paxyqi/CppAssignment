@@ -28,14 +28,10 @@ private:
 	int lines, rows;
 	double** matrixPtr;
 public:
-	bool flag = false;
 	matrix()
 	{
-		matrixPtr = new double* [lines];
-		for (int i = 0; i < lines; i++)
-		{
-			matrixPtr[i] = new double[rows];
-		}
+		cout << "have made" << endl;
+		
 	}
 	matrix(const matrix& obj)
 	{
@@ -44,12 +40,21 @@ public:
 	}
 	void InitMatrix()
 	{
+		matrixPtr = new double* [lines];
+		for (int i = 0; i < lines; i++)
+		{
+			matrixPtr[i] = new double[rows];
+		}
+	}
+	void InitInside()
+	{
+		
 		cout << "please input the matrix: " << endl;
 		for (int i = 0; i < lines; i++)
 		{
 			for (int j = 0; j < rows; j++)
 			{
-				cin >> matrixPtr[i][j];
+				cin >> this->matrixPtr[i][j];
 			}
 		}
 	}
@@ -69,55 +74,60 @@ public:
 		cout << "please input the number of lines and rows: " << endl;
 		cin >> lines >> rows;
 	}
-	int getLines()
+	int getLines ()const
 	{
 		return lines;
 	}
-	int getRows()
+	int getRows()const
 	{
 		return rows;
+	}
+	int testMatch(const matrix& A,const matrix& B) const
+	{
+		if (A.getLines() == B.getLines() && A.getRows() == B.getRows())
+		{
+			return 1;
+		}
+		else return 0;
 	}
 	matrix operator+(const matrix& B)
 	{
 		matrix C;
-		int Al, Ar, Bl, Br;
-		Al = lines;
-		Ar = rows;
-		Bl = B.getLines();
-		Br = B->getRows();
-		if ((Al == Bl) && (Ar == Br))
+		C.lines = lines;
+		C.rows = rows;
+		C.InitMatrix();
+		for (int i = 0; i < lines; i++)
 		{
-			C.flag = 1;
-			for (int i = 0; i < lines; i++)
-			{
-				for (int j = 0; j < rows; j++)
-				{
-					C.matrixPtr[i][j] = this->matrixPtr[i][j] + B.matrixPtr[i][j];
-				}
-			}
+			for (int j = 0; j < rows; j++)
+				C.matrixPtr[i][j] = this->matrixPtr[i][j] + B.matrixPtr[i][j];
 		}
 		return C;
 	}
 	matrix operator-(const matrix& B)
 	{
 		matrix C;
-		int Al, Ar, Bl, Br;
-		Al = lines;
-		Ar = rows;
-		Bl = B.getLines;
-		Br = B.getRows;
-		if ((Al == Bl) && (Ar == Br))
+		C.lines = lines;
+		C.rows = rows;
+		C.InitMatrix();
+		for (int i = 0; i < lines; i++)
 		{
-			C.flag = 1;
-			for (int i = 0; i < lines; i++)
-			{
-				for (int j = 0; j < rows; j++)
-				{
-					C.matrixPtr[i][j] = this->matrixPtr[i][j] - B.matrixPtr[i][j];
-				}
-			}
+			for (int j = 0; j < rows; j++)
+				C.matrixPtr[i][j] = this->matrixPtr[i][j] - B.matrixPtr[i][j];
 		}
 		return C;
+	}
+	matrix& operator=(const matrix&  B)
+	{
+		// 首先检测等号右边的是否就是左边的对象本身，若是本对象本身,则直接返回
+		// 复制等号右边的成员到左边的对象中
+		if (this != &B)
+		{
+			lines = B.lines;
+			rows = B.rows;
+			matrixPtr = B.matrixPtr;
+		}
+		return *this;
+		
 	}
 	~matrix()
 	{
@@ -126,6 +136,7 @@ public:
 			delete[] matrixPtr[i];
 		}
 		delete[] matrixPtr;
+		cout << "have deleted" << endl;
 	};
 };
 
@@ -134,33 +145,39 @@ public:
 int main()
 {
 	matrix A1, A2, A3;
+	A1.set();
 	A1.InitMatrix();
+	A1.InitInside();
+	A2.set();
 	A2.InitMatrix();
-	A3 = A1 + A2;
-	if (A3.flag == 1)
+	A2.InitInside();
+	if (A1.testMatch(A1, A2))
+	{
+		A3 = A1 + A2;
 		A3.PrintMatrix();
-	else cout << "A1 is not match A2";
-	A3 = A1 - A2;
-	if (A3.flag == 1)
+		A3 = A1 + A2;
 		A3.PrintMatrix();
+	}
 	else cout << "A1 is not match A2";
-	auto pA1 = new matrix;
+	/*auto pA1 = new matrix;
 	auto pA2 = new matrix;
 	auto pA3 = new matrix;
+	pA1->set();
 	pA1->InitMatrix();
+	pA2->set();
 	pA2->InitMatrix();
 	A1 = *pA1;
 	A2 = *pA2;
-	if (A3.flag == 1)
+
 		A3.PrintMatrix();
 	else cout << "pA1 is not match pA2";
 	A3 = A1 - A2;
-	if (A3.flag == 1)
+
 		A3.PrintMatrix();
 	else cout << "pA1 is not match pA2";
 	delete pA1;
 	delete pA2;
-	delete pA3;
+	delete pA3;*/
 	return 0;
 }
 
