@@ -21,35 +21,45 @@
 （8）	计算并输出pA3 = pA1加pA2，pA3 = pA1减pA2；
 （9）	释放pA1、pA2、pA3。
 */
+//oops！我好像把行列搞反了，下列代码：line==行；row==列
 #include <iostream>
 using namespace std;
 class matrix {
 private:
-	int lines, rows;
 	double** matrixPtr;
 public:
-	bool flag = false;
-	matrix()
+	int lines, rows;
+	matrix(int line,int row):lines(line),rows(row)
 	{
+		//cout << "have made" << endl;
 		matrixPtr = new double* [lines];
 		for (int i = 0; i < lines; i++)
 		{
 			matrixPtr[i] = new double[rows];
 		}
 	}
-	matrix(const matrix& obj)
+//copy
+	matrix(matrix& m) : lines(m.lines), rows(m.rows) 
 	{
-		matrixPtr = new double*;
-		*matrixPtr = *obj.matrixPtr;
+		matrixPtr = new double* [lines];
+		for (int i = 0; i <lines ; i++) {
+			matrixPtr[i] = new double[rows];
+			for (int j = 0; j < rows; j++)
+				matrixPtr[i][j] = m.matrixPtr[i][j];
+		}
 	}
-	void InitMatrix()
+	matrix(matrix&& m) : lines(m.lines), rows(m.rows) {
+		this->matrixPtr = m.matrixPtr;
+		m.matrixPtr = nullptr;
+	}
+	void InitInside()
 	{
 		cout << "please input the matrix: " << endl;
 		for (int i = 0; i < lines; i++)
 		{
 			for (int j = 0; j < rows; j++)
 			{
-				cin >> matrixPtr[i][j];
+				cin >> this->matrixPtr[i][j];
 			}
 		}
 	}
@@ -64,68 +74,53 @@ public:
 			cout << endl;
 		}
 	}
-	void set()
-	{
-		cout << "please input the number of lines and rows: " << endl;
-		cin >> lines >> rows;
-	}
-	int getLines()
-	{
-		return lines;
-	}
-	int getRows()
-	{
-		return rows;
-	}
-	matrix operator+(const matrix& B)
-	{
-		matrix C;
-		int Al, Ar, Bl, Br;
-		Al = lines;
-		Ar = rows;
-		Bl = B.getLines();
-		Br = B->getRows();
-		if ((Al == Bl) && (Ar == Br))
-		{
-			C.flag = 1;
-			for (int i = 0; i < lines; i++)
-			{
-				for (int j = 0; j < rows; j++)
-				{
-					C.matrixPtr[i][j] = this->matrixPtr[i][j] + B.matrixPtr[i][j];
-				}
-			}
+	inline matrix& operator=(matrix&& m) {
+		if (matrixPtr == m.matrixPtr)
+			return *this;
+		else {
+			rows = m.rows;
+			lines = m.lines;
+			if (matrixPtr)
+				delete[] matrixPtr;
+			matrixPtr = m.matrixPtr;
+			m.matrixPtr = nullptr;
 		}
-		return C;
 	}
-	matrix operator-(const matrix& B)
-	{
-		matrix C;
-		int Al, Ar, Bl, Br;
-		Al = lines;
-		Ar = rows;
-		Bl = B.getLines;
-		Br = B.getRows;
-		if ((Al == Bl) && (Ar == Br))
-		{
-			C.flag = 1;
-			for (int i = 0; i < lines; i++)
-			{
-				for (int j = 0; j < rows; j++)
-				{
-					C.matrixPtr[i][j] = this->matrixPtr[i][j] - B.matrixPtr[i][j];
-				}
-			}
+	matrix&& operator+(matrix& toAdd) {
+		if (toAdd.lines != lines || toAdd.rows != rows) {
+			cerr << "The two matrixes must have same lines and rows";
+			exit(-1);
 		}
-		return C;
+		matrix toReturn(lines, rows);
+		for (int i = 0; i < lines; i++)
+			for (int j = 0; j < rows; j++)
+				toReturn.matrixPtr[i][j] = toAdd.matrixPtr[i][j] + this->matrixPtr[i][j];
+		return move(toReturn);
 	}
+	matrix&& operator-(matrix& tosub) {
+		if (tosub.lines != lines || tosub.rows != rows) {
+			cerr << "The two matrixes must have same lines and rows";
+			exit(-1);
+		}
+		matrix toReturn(lines, rows);
+		for (int i = 0; i < lines; i++)
+			for (int j = 0; j < rows; j++)
+				toReturn.matrixPtr[i][j] = this->matrixPtr[i][j] - tosub.matrixPtr[i][j];
+		return move(toReturn);
+	}
+	
 	~matrix()
 	{
-		for (int i = 0; i < lines; i++)
+		if (!matrixPtr)
 		{
-			delete[] matrixPtr[i];
+			for (int i = 0; i < lines; i++)
+			{
+				delete[] matrixPtr[i];
+			}
+			delete[] matrixPtr;
+			//cout << "have deleted" << endl;
 		}
-		delete[] matrixPtr;
+		
 	};
 };
 
@@ -133,34 +128,38 @@ public:
 
 int main()
 {
-	matrix A1, A2, A3;
-	A1.InitMatrix();
-	A2.InitMatrix();
-	A3 = A1 + A2;
-	if (A3.flag == 1)
-		A3.PrintMatrix();
-	else cout << "A1 is not match A2";
+	cout << "Input the lines and the rows of the A1,A2: ";
+	int l1, l2, r1, r2;
+	cin >> l1 >> r1 >> l2 >> r2;
+	matrix A1(l1, r1), A2(l2, r2);
+	A1.InitInside();
+	A2.InitInside();
+	auto A3 = A1 + A2;
+	cout << "The A3=A1+A2=" << endl;
+	A3.PrintMatrix();
 	A3 = A1 - A2;
-	if (A3.flag == 1)
-		A3.PrintMatrix();
+	cout << "The A3=A1-A2=" << endl;
+	A3.PrintMatrix();
+	cout << "Input the lines and the rows of the pA1,pA2: ";
+	cin >> l1 >> r1 >> l2 >> r2;
+	auto pA1 = new matrix(l1, r1);
+	auto pA2 = new matrix(l2, r2);
+	if (l1 == l2 && r1 == r2)
+	{
+		auto pA3 = new matrix(l2, r2);
+		pA1->InitInside();
+		pA2->InitInside();
+		*pA3 = *pA1 + *pA2;
+		cout << "The A3=A1+A2=" << endl;
+		pA3->PrintMatrix();
+		*pA3 = *pA1 - *pA2;
+		cout << "The A3=A1-A2=" << endl;
+		pA3->PrintMatrix();
+		delete pA1;
+		delete pA2;
+		delete pA3;
+	}
 	else cout << "A1 is not match A2";
-	auto pA1 = new matrix;
-	auto pA2 = new matrix;
-	auto pA3 = new matrix;
-	pA1->InitMatrix();
-	pA2->InitMatrix();
-	A1 = *pA1;
-	A2 = *pA2;
-	if (A3.flag == 1)
-		A3.PrintMatrix();
-	else cout << "pA1 is not match pA2";
-	A3 = A1 - A2;
-	if (A3.flag == 1)
-		A3.PrintMatrix();
-	else cout << "pA1 is not match pA2";
-	delete pA1;
-	delete pA2;
-	delete pA3;
 	return 0;
 }
 
